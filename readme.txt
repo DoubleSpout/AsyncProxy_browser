@@ -8,6 +8,32 @@ AsyncProxy_browser.js的特点
 4、支持同时多条ajax队列，只需实例化多次即可，互不影响
 缺点：gc需要手动处理。
 
+
+
+
+应用实例:
+有一个需求，发送ary.length个异步请求到ary[x]存着的url中，，并且将对应返回的结果按ary内的顺序插入到ary2中，当所有数据返回调用ADD方法。因为ary.length的长度不确定，所以使用普通嵌套式编写只能递归编写，而且请求只能链式调用，如果我们使用 AsyncProxy_browser 插件则不但可以并发，更可以避免递归。看代码：
+
+var as = new AsyncProxy_browser(),  ary2, asary=[];
+var allfunc = function(data){
+ ary2 = data;
+ alert('全部完成');
+}
+for(var i=0; i<ary.length; i++){
+ var asfunc = function(order){
+  $.get(ary[order],{'action':'getdata'},function(data){
+   as.rec(order, data);
+  },'json')
+ }
+ asary.push(asfunc )
+}
+asfunc.push(allfunc)
+as.ap.apply(as, asary);
+这样就将数据按顺序返回至ary2数组中去了。
+
+
+
+
 测试用例可以作为示例来运行。
 testasync的测试结果：
 
