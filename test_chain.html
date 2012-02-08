@@ -19,47 +19,43 @@ function ps(data){
 	$('#content').append(data+'<br/><br/>');
 	}
 
-var as = new AsyncProxy_browser(true);
-var f1 = function(order){  
+var as = AsyncProxyBrowser(true);
+var f1 = function(rec){  
 	setTimeout(function(){  
 		ps('f1 is ok')    
-		var state = as.rec(order,'f1_data');  
+		var state = rec();  
 		ps('已经返回：'+state.rec+'/'+state.total);
 	},8000)
 }
 
-var f2 = function(order){  
+var f2 = function(rec){  
 	setTimeout(function(){  
-		ps('f2 is ok，上一个返回结果'+as.prev)    
-		var state = as.rec(order,'f2_data');  
+	ps('f2 is ok')   
+		var state = rec();
 		ps('已经返回：'+state.rec+'/'+state.total);
 	},5000)
 }
 
 
-var f3 = function(order){  
+var f3 = function(rec){  
 	setTimeout(function(){  
-		ps('f3 is ok，上一个返回结果'+as.prev)    
-		var state = as.rec(order,'f3_data');  
+	ps('f3 is ok')   
+		var state = rec();
 		ps('已经返回：'+state.rec+'/'+state.total);
 
 	},3000)
 }
 
-var f4 = function(order){  
-	setTimeout(function(){  
-		ps('f4 is ok，上一个返回结果'+as.prev)    
-		var state = as.rec(order,'f4');  
+var f4 = function(rec){  
+	setTimeout(function(){   
+	ps('f4 is ok')   
+		var state = rec()
 		ps('已经返回：'+state.rec+'/'+state.total);
 
 	},1000)
 }
 var all = function(data){
-	var d = ''
-	for(var i=0;i<data.length;i++){
-		d += data[i]+' || '
-	}
-	ps('all函数执行！返回数据为'+d);
+	ps('all函数执行！返回数据为');
 	as=null; //用完以后将as设置为null,这里需要手动gc
 }
 var total = as.ap(f1, f2, f3,f4, all);  //as.ap是入口，参数规则  异步函数1, 异步函数2 。。。 回调函数

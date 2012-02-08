@@ -1,25 +1,35 @@
 void function(){
-	window.AsyncProxy_browser =  AsyncProxy = function(ischain){
-		this.data = [];//存放异步返回结果的数组
+	window.AsyncProxyBrowser =  AsyncProxy = function(ischain){
+		var me = arguments.callee;
+		if(!(this instanceof me)) return new me(ischain);
 		this.ischain = ischain||false; //是否链式调用,默认是false
 	}
-	AsyncProxy.listener = function(order, data, ap){//建立事件监听函数，私有方法
-			ap.prev = ap.data[order] = data;
-			if(--ap.length===0)	ap.callback(ap.data);
+	AsyncProxy._listener = function(order, ap){//建立事件监听函数，私有方法
+			if(--ap.length===0)	ap.callback();
 		}
-	AsyncProxy.prototype.rec = function(order, data){ //当异步返回入口
-		AsyncProxy.listener(order, data, this); 
+	AsyncProxy.prototype.rec = function(order){ //当异步返回入口
+		AsyncProxy._listener(order, this); 
 		if(this.ischain && ++order<this.asyncs.length){	this.asyncs[order](order);}
 		return {total:this.asyncs.length, rec:this.asyncs.length - this.length}
 	}	
+	AsyncProxy.prototype.recfunc = function(callback){
+		var ap = this;
+		return function(order){
+				return callback(function(){
+					return ap.rec(order);
+				});		
+			}	
+	}
 	AsyncProxy.prototype.ap = function(){ //主入口
-		var ap = this, i=0, len = arguments.length - 1;
+		var ap = this, i=-1, len = arguments.length - 1;
 			ap.asyncs = [].slice.apply(arguments, [0, len]); //将参数eventname1-n转存成events 数组
 			ap.callback = arguments[len];
-			if((ap.length=ap.asyncs.length)&&!ap.ischain){ //如果非链式调用
-				while(i++ < ap.asyncs.length){ ap.asyncs[i-1](i-1);}
+		var length = ap.length = ap.asyncs.length;
+			while(i++ < length-1){
+				ap.asyncs[i] = ap.recfunc(ap.asyncs[i]);
+				if(!ap.ischain) ap.asyncs[i](i);
 			}
-			else ap.asyncs[0](0);
-			return ap.asyncs.length;
+			if(ap.ischain) ap.asyncs[0](0);
+			return length;
 	}
 }()
